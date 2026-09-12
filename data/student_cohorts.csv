@@ -1,0 +1,6 @@
+cohort_id,name,year,department,size,mandatory_courses
+CSE_Y1,CSE Freshman Year 1,1,Computer Science,150,CSE 101; CSE 111; CSE 141; CSE 151
+CSE_Y2,CSE Sophomore Year 2,2,Computer Science,75,CSE 211; CSE 251; CSE 261; CSE 277
+CSE_Y3,CSE Junior Year 3,3,Computer Science,60,CSE 301; CSE 341; CSE 342; CSE 361
+CSE_Y4,CSE Senior Year 4,4,Computer Science,48,CSE 401; CSE 418; CSE 421; CSE 474
+CSE_GRAD,CSE Graduate MS/PhD,5,Computer Science,28,CSE 511; CSE 514; CSE 524; CSE 588
