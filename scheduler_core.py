@@ -107,8 +107,8 @@ def build_domain(data_dir):
         mandatory = [m.strip() for m in c["mandatory_courses"].split(";")]
         for cid in mandatory:
             course_cohort[cid] = c["cohort_id"]
-
-    return domains, course_cohort, slot_info, name_to_id
+    cohort_size = {c["cohort_id"]: int(c["size"]) for c in cohort}   # cohort_id -> size, for capacity scoring
+    return domains, course_cohort, slot_info, name_to_id, room_id, cohort_size
 
 # for cid, d in domains.items():
 #     print(cid, len(d), d[:2])

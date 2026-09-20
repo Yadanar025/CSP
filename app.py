@@ -16,6 +16,7 @@ import re
 import csv
 import scheduler_core
 import scheduler_solver
+import scheduler_penalty
 
 # TODO: Import your custom modules, solvers, or constraint models here.
 # Example: from my_scheduler.csp import CSPSolver
@@ -62,12 +63,24 @@ def studentscheduler(data_dir="data", output_dir="data", student_id=None):
     # TODO: Implement your CSP / Local Search scheduling solution below.
     #
     # 1. Load data from data_dir (e.g., courses.csv, instructors.csv, rooms.csv, time_slots.csv, student_cohorts.csv).
-    domains, course_cohort, slot_info, name_to_id = scheduler_core.build_domain(data_dir)
+    domains, course_cohort, slot_info, name_to_id, room_id, cohort_size = scheduler_core.build_domain(data_dir)
     # 2. Formulate CSP variables, domains, hard constraints, and soft constraints.
     # 3. Solve the schedule using Backtracking (MRV, LCV, Forward Checking) and/or Local Search.
     assign = scheduler_solver.backtracking_search(domains,course_cohort)
     if assign is None:
         assign ={}
+
+    assign, mc_steps = scheduler_solver.min_conflicts(assign, domains, course_cohort)
+    print("Min-conflicts finished in", mc_steps, "steps")
+
+    penalty_before = scheduler_penalty.total_penalty(assign, course_cohort, cohort_size, room_id, slot_info)
+    print("Soft-constraint penalty before annealing:", penalty_before)
+
+    assign, penalty = scheduler_penalty.simulated_annealing(
+        assign, domains, course_cohort, cohort_size, room_id, slot_info
+    )
+    print("Total soft-constraint penalty after optimization:", penalty)
+    
     # 4. Save the resulting schedule to `output_path`.
     with open(output_path,"w",newline="") as f:
         writer=csv.writer(f)

@@ -91,3 +91,31 @@ def backtrack(assignment, domains, course_cohort):
 
 def backtracking_search(domains, course_cohort): #the start of the scheduler algorithm
     return backtrack({}, dict(domains), course_cohort) #there is no assign room in the very start
+
+
+import random
+
+def conflict_count(course_id, value, assignment, course_cohort):
+    room, instr, slot = value
+    this_cohort = course_cohort.get(course_id)
+    count = 0
+    for other_id, other_val in assignment.items():
+        if other_id == course_id:
+            continue
+        other_room, other_instr, other_slot = other_val
+        if slot != other_slot:
+            continue
+        if room == other_room or instr == other_instr or this_cohort == course_cohort.get(other_id):
+            count += 1
+    return count
+
+def min_conflicts(assignment, domains, course_cohort, max_steps=1000):
+    current = dict(assignment)
+    for step in range(max_steps):
+        conflicted = [cid for cid in current if conflict_count(cid, current[cid], current, course_cohort) > 0]
+        if not conflicted:
+            return current, step   # no conflicts left -> solved (or already was)
+        course_id = random.choice(conflicted)
+        best_value = min(domains[course_id], key=lambda v: conflict_count(course_id, v, current, course_cohort))
+        current[course_id] = best_value
+    return current, max_steps
