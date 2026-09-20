@@ -5,15 +5,17 @@ def load_csv(path):
     with open(path) as f:
         return list(csv.DictReader(f))
     
-def build_domain(data_dir):
-    cohort = load_csv(os.path.join(data_dir,"student_cohorts.csv"))
+def build_domain(data_dir): 
+    cohort = load_csv(os.path.join(data_dir,"student_cohorts.csv")) #data input
     courses = load_csv(os.path.join(data_dir,"courses.csv"))
     instructor = load_csv(os.path.join(data_dir,"instructors.csv"))
     rooms = load_csv(os.path.join(data_dir,"rooms.csv"))
     time_slots = load_csv((os.path.join(data_dir,"time_slots.csv")))
 
     room_id = {i["room_id"]: i for i in rooms}
-    time_slots = {i["slot_id"]: i for i in time_slots}
+    slot_info = {i["slot_id"]: i for i in time_slots}   # slot_id -> full row (day, start_time, end_time)
+    name_to_id = {i["instructor_name"]: i["instructor_id"] for i in instructor}   # instructor name -> instructor_id
+    time_slots = dict(slot_info)
     #cohorts_size = {i["size"]: i for i in cohort}
     #cohorts_mandatory = {i["mandatory_courses"]: i for i in cohort}
     #instructor_course = {i["courses"]: i for i in instructor}
@@ -50,8 +52,8 @@ def build_domain(data_dir):
     # #print(course_term)
 
     #for splitting the group room mentions
-    def split_room_mention(mentions):
-        mentions = mentions.strip()
+    def split_room_mention(mentions): 
+        mentions = mentions.strip() #for TECH 201/202/203/204
         if "/" not in mentions:
             return [mentions]
         room, number = mentions.rsplit(" ",1)
@@ -84,22 +86,29 @@ def build_domain(data_dir):
 
     def cohort_size_for(course_id):
         for i in cohort:
-            mandatory = [m.strip() for m in i["mandatory_courses"].split(";")] 
+            mandatory = [m.strip() for m in i["mandatory_courses"].split(";")] #add mandatory course
             if course_id in mandatory:
                 return int (i["size"])
         return None
 
     from itertools import product
-
-
+    
     domains = {}
+    for course_id, course_row in courses_id.items():
+        size = cohort_size_for(course_id)  #get cohort size
+        if size is None: #for none mandatory course
+            continue
+        rooms = p_room(course_row, cohort_size_for(course_id), room_id) #valide room
+        instrs = instructors_name(course_row)
+        domains[course_id] = list(product(rooms, instrs, time_slots)) #will have room, instructor and slot
+
     course_cohort = {}
     for c in cohort:
         mandatory = [m.strip() for m in c["mandatory_courses"].split(";")]
         for cid in mandatory:
             course_cohort[cid] = c["cohort_id"]
 
-    return domains, course_cohort
+    return domains, course_cohort, slot_info, name_to_id
 
 # for cid, d in domains.items():
 #     print(cid, len(d), d[:2])

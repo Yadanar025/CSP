@@ -14,6 +14,8 @@ Instructions for Students:
 import os
 import re
 import csv
+import scheduler_core
+import scheduler_solver
 
 # TODO: Import your custom modules, solvers, or constraint models here.
 # Example: from my_scheduler.csp import CSPSolver
@@ -60,10 +62,22 @@ def studentscheduler(data_dir="data", output_dir="data", student_id=None):
     # TODO: Implement your CSP / Local Search scheduling solution below.
     #
     # 1. Load data from data_dir (e.g., courses.csv, instructors.csv, rooms.csv, time_slots.csv, student_cohorts.csv).
+    domains, course_cohort, slot_info, name_to_id = scheduler_core.build_domain(data_dir)
     # 2. Formulate CSP variables, domains, hard constraints, and soft constraints.
     # 3. Solve the schedule using Backtracking (MRV, LCV, Forward Checking) and/or Local Search.
+    assign = scheduler_solver.backtracking_search(domains,course_cohort)
+    if assign is None:
+        assign ={}
     # 4. Save the resulting schedule to `output_path`.
-    #
+    with open(output_path,"w",newline="") as f:
+        writer=csv.writer(f)
+        writer.writerow(["course_id","room_id","slot_id", "instructor_id", "cohort_id", "day", "start_time", "end_time"])
+        for course_id,(room,instr_name,slot) in assign.items():
+            instructor_id = name_to_id.get(instr_name," ")
+            cohort_id = course_cohort.get(course_id, " ")
+            slot_row = slot_info.get(slot,{})
+            writer.writerow([course_id,room,slot,instructor_id,cohort_id,slot_row.get("day", ""), slot_row.get("start_time", ""), slot_row.get("end_time", "")])
+            
     # Expected CSV columns (recommended):
     # course_id, room_id, slot_id, instructor_id, cohort_id, day, start_time, end_time
     # =========================================================================
